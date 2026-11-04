@@ -1,0 +1,6 @@
+usage.json
+menu.json
+*.bak
+__pycache__/
+*.pyc
+.venv/

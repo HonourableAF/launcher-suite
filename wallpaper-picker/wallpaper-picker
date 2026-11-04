@@ -1,0 +1,295 @@
+#!/usr/bin/env python3
+"""Fullscreen animated wallpaper carousel for KDE Plasma (PyQt6 + QtQuick).
+
+Left/Right or mouse wheel: move   Enter / click centre: apply   Esc: close
+"""
+import os
+import subprocess
+import sys
+
+from PyQt6.QtCore import QObject, QUrl, pyqtSlot
+from PyQt6.QtGui import QGuiApplication
+from PyQt6.QtQml import QQmlApplicationEngine
+from PyQt6.QtQuick import QQuickWindow
+
+DIR = os.path.expanduser(os.environ.get("WP_DIR", "~/Pictures/Wallpapers"))
+STATE = os.path.expanduser("~/.cache/wallpaper-switch.index")
+EXTS = (".jpg", ".jpeg", ".png", ".webp", ".bmp")
+
+QML = r'''
+import QtQuick
+import QtQuick.Window
+
+Window {
+    id: win
+    visible: true
+    visibility: Window.FullScreen
+    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    color: "transparent"
+    title: "wallpaper-picker"
+
+    readonly property color accent: "#89b4fa"
+    readonly property string mono: "JetBrainsMono Nerd Font, monospace"
+    property bool closing: false
+
+    function closeAnimated() {
+        if (closing) return
+        closing = true
+        fadeOut.start()
+    }
+    function applyCurrent() {
+        if (closing) return
+        closing = true
+        backend.apply(pv.currentIndex)
+        fadeOut.start()
+    }
+
+    // scrim
+    Rectangle {
+        id: scrim
+        anchors.fill: parent
+        color: "#0a0a12"
+        opacity: 0
+        NumberAnimation on opacity { id: scrimIn; to: 0.88; duration: 260; easing.type: Easing.OutCubic; running: true }
+        MouseArea { anchors.fill: parent; onClicked: win.closeAnimated() }
+    }
+
+    NumberAnimation { id: fadeOut; targets: [scrim, stage]; property: "opacity"; to: 0; duration: 180
+                      easing.type: Easing.InCubic; onFinished: backend.quit() }
+
+    Item {
+        id: stage
+        anchors.fill: parent
+        opacity: 0
+        focus: true
+        NumberAnimation on opacity { to: 1; duration: 320; easing.type: Easing.OutCubic; running: true }
+
+        Keys.onPressed: (e) => {
+            if (e.key === Qt.Key_Left || e.key === Qt.Key_H || e.key === Qt.Key_A) pv.decrementCurrentIndex()
+            else if (e.key === Qt.Key_Right || e.key === Qt.Key_L || e.key === Qt.Key_D) pv.incrementCurrentIndex()
+            else if (e.key === Qt.Key_Return || e.key === Qt.Key_Enter || e.key === Qt.Key_Space) win.applyCurrent()
+            else if (e.key === Qt.Key_Escape || e.key === Qt.Key_Q) win.closeAnimated()
+            else if (e.key === Qt.Key_Home) pv.currentIndex = 0
+            else if (e.key === Qt.Key_End) pv.currentIndex = wallpapers.length - 1
+        }
+
+        // header
+        Text {
+            anchors.left: parent.left; anchors.top: parent.top
+            anchors.leftMargin: 64; anchors.topMargin: 52
+            text: "WALLPAPERS"
+            color: "white"; opacity: 0.9
+            font.family: win.mono; font.pixelSize: 15; font.letterSpacing: 6; font.bold: true
+        }
+        Rectangle {
+            anchors.left: parent.left; anchors.top: parent.top
+            anchors.leftMargin: 64; anchors.topMargin: 80
+            width: 48; height: 2; color: win.accent
+        }
+        Text {
+            anchors.right: parent.right; anchors.top: parent.top
+            anchors.rightMargin: 64; anchors.topMargin: 52
+            text: ("0" + (pv.currentIndex + 1)).slice(-2) + "  /  " + ("0" + wallpapers.length).slice(-2)
+            color: win.accent
+            font.family: win.mono; font.pixelSize: 15; font.letterSpacing: 4; font.bold: true
+        }
+
+        PathView {
+            id: pv
+            anchors.left: parent.left; anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            height: 480
+            model: wallpapers
+            currentIndex: startIndex
+            pathItemCount: Math.min(7, wallpapers.length)
+            preferredHighlightBegin: 0.5
+            preferredHighlightEnd: 0.5
+            highlightRangeMode: PathView.StrictlyEnforceRange
+            highlightMoveDuration: 420
+            snapMode: PathView.SnapOneItem
+            interactive: false
+            cacheItemCount: 4
+
+            path: Path {
+                startX: -pv.width * 0.05; startY: pv.height / 2
+                PathAttribute { name: "itemScale";   value: 0.42 }
+                PathAttribute { name: "itemOpacity"; value: 0.0 }
+                PathAttribute { name: "itemAngle";   value: 55 }
+                PathAttribute { name: "itemZ";       value: 0 }
+                PathLine { x: pv.width * 0.17; y: pv.height / 2 }
+                PathAttribute { name: "itemScale";   value: 0.58 }
+                PathAttribute { name: "itemOpacity"; value: 0.45 }
+                PathAttribute { name: "itemAngle";   value: 48 }
+                PathAttribute { name: "itemZ";       value: 1 }
+                PathLine { x: pv.width * 0.5 - 0.01; y: pv.height / 2 }
+                PathAttribute { name: "itemScale";   value: 1.0 }
+                PathAttribute { name: "itemOpacity"; value: 1.0 }
+                PathAttribute { name: "itemAngle";   value: 0 }
+                PathAttribute { name: "itemZ";       value: 10 }
+                PathLine { x: pv.width * 0.5 + 0.01; y: pv.height / 2 }
+                PathAttribute { name: "itemScale";   value: 1.0 }
+                PathAttribute { name: "itemOpacity"; value: 1.0 }
+                PathAttribute { name: "itemAngle";   value: 0 }
+                PathAttribute { name: "itemZ";       value: 10 }
+                PathLine { x: pv.width * 0.83; y: pv.height / 2 }
+                PathAttribute { name: "itemScale";   value: 0.58 }
+                PathAttribute { name: "itemOpacity"; value: 0.45 }
+                PathAttribute { name: "itemAngle";   value: -48 }
+                PathAttribute { name: "itemZ";       value: 1 }
+                PathLine { x: pv.width * 1.05; y: pv.height / 2 }
+                PathAttribute { name: "itemScale";   value: 0.42 }
+                PathAttribute { name: "itemOpacity"; value: 0.0 }
+                PathAttribute { name: "itemAngle";   value: -55 }
+                PathAttribute { name: "itemZ";       value: 0 }
+            }
+
+            delegate: Item {
+                id: del
+                width: 720; height: 405
+                readonly property bool current: PathView.isCurrentItem
+                z: PathView.itemZ
+                scale: PathView.itemScale
+                opacity: PathView.itemOpacity
+
+                transform: Rotation {
+                    origin.x: del.width / 2; origin.y: del.height / 2
+                    axis { x: 0; y: 1; z: 0 }
+                    angle: del.PathView.itemAngle
+                }
+
+                // hard offset shadow plate (sharp look)
+                Rectangle {
+                    x: 14; y: 14; width: parent.width; height: parent.height
+                    color: win.accent
+                    opacity: del.current ? 0.22 : 0
+                    Behavior on opacity { NumberAnimation { duration: 300 } }
+                }
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#05050a"
+                    border.width: del.current ? 2 : 1
+                    border.color: del.current ? win.accent : "#2a2a3a"
+                    Behavior on border.color { ColorAnimation { duration: 250 } }
+                }
+                Image {
+                    anchors.fill: parent; anchors.margins: del.current ? 2 : 1
+                    source: modelData.url
+                    sourceSize: Qt.size(1280, 720)
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    smooth: true
+                    // dim non-selected
+                    Rectangle { anchors.fill: parent; color: "black"; opacity: del.current ? 0 : 0.35
+                                Behavior on opacity { NumberAnimation { duration: 300 } } }
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: del.current ? win.applyCurrent() : pv.currentIndex = index
+                }
+            }
+        }
+
+        // title
+        Text {
+            id: nameText
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: pv.bottom; anchors.topMargin: 18
+            text: wallpapers.length ? wallpapers[pv.currentIndex].name.toUpperCase() : ""
+            color: "white"
+            font.family: win.mono; font.pixelSize: 20; font.letterSpacing: 5; font.bold: true
+            elide: Text.ElideMiddle; width: Math.min(implicitWidth, parent.width * 0.7)
+            horizontalAlignment: Text.AlignHCenter
+        }
+        Rectangle {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: nameText.bottom; anchors.topMargin: 12
+            height: 2; color: win.accent
+            width: 64
+        }
+
+        // hints
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom; anchors.bottomMargin: 48
+            text: "←  →   NAVIGATE        ⏎   APPLY        ESC   CLOSE"
+            color: "white"; opacity: 0.45
+            font.family: win.mono; font.pixelSize: 12; font.letterSpacing: 3
+        }
+
+        // wheel scroll (throttled by the animation itself)
+        MouseArea {
+            anchors.fill: parent
+            z: -1
+            acceptedButtons: Qt.NoButton
+            property real acc: 0
+            onWheel: (w) => {
+                acc += (w.angleDelta.y !== 0 ? w.angleDelta.y : w.angleDelta.x)
+                if (acc >= 60) { pv.decrementCurrentIndex(); acc = 0 }
+                else if (acc <= -60) { pv.incrementCurrentIndex(); acc = 0 }
+            }
+        }
+    }
+}
+'''
+
+
+class Backend(QObject):
+    def __init__(self, files, app):
+        super().__init__()
+        self.files = files
+        self.app = app
+
+    @pyqtSlot(int)
+    def apply(self, idx):
+        if 0 <= idx < len(self.files):
+            os.makedirs(os.path.dirname(STATE), exist_ok=True)
+            with open(STATE, "w") as f:
+                f.write(str(idx))
+            subprocess.Popen(["plasma-apply-wallpaperimage", self.files[idx]],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    @pyqtSlot()
+    def quit(self):
+        self.app.quit()
+
+
+def main():
+    try:
+        files = sorted(
+            os.path.join(DIR, f) for f in os.listdir(DIR)
+            if f.lower().endswith(EXTS) and os.path.isfile(os.path.join(DIR, f))
+        )
+    except FileNotFoundError:
+        files = []
+    if not files:
+        subprocess.run(["notify-send", "-u", "low", "Wallpaper", f"No images found in {DIR}"])
+        return 1
+
+    try:
+        start = int(open(STATE).read().strip())
+    except Exception:
+        start = 0
+    if not 0 <= start < len(files):
+        start = 0
+
+    QQuickWindow.setDefaultAlphaBuffer(True)
+    app = QGuiApplication(sys.argv)
+    app.setDesktopFileName("wallpaper-picker")
+    engine = QQmlApplicationEngine()
+
+    model = [{"name": os.path.splitext(os.path.basename(p))[0],
+              "url": QUrl.fromLocalFile(p).toString()} for p in files]
+    backend = Backend(files, app)
+    ctx = engine.rootContext()
+    ctx.setContextProperty("wallpapers", model)
+    ctx.setContextProperty("startIndex", start)
+    ctx.setContextProperty("backend", backend)
+
+    engine.loadData(QML.encode("utf-8"), QUrl("wallpaper-picker.qml"))
+    if not engine.rootObjects():
+        return 1
+    return app.exec()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

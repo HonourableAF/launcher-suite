@@ -1,0 +1,186 @@
+[general]
+height = 16
+default_module = "gg"
+empty_module = "app"
+exec_cmd = "sh -c"
+vi_mode = true
+esc_to_abort = true
+cheatsheet_entry = "??"
+cheatsheet_viewer = "less -R; clear"
+clear_screen_after_execution = false
+loop_mode = false
+external_editor = "nvim"
+ 
+[interface]
+padding = [1, 2, 0, 2]
+ 
+# Truecolor Nord: frost (#88C0D0 / #81A1C1), snow (#D8DEE9), polar night (#4C566A)
+header = """
+\u001B[38;2;136;192;208;1m 󰄛  otter\u001B[0m \u001B[38;2;76;86;106m│\u001B[0m \u001B[38;2;216;222;233m$USER\u001B[0m\u001B[38;2;76;86;106m@\u001B[0m\u001B[38;2;129;161;193m$HOSTNAME\u001B[0m
+"""
+ 
+header_color = "light_blue"
+prompt_sign = "❯ "
+prompt_sign_color = "cyan"
+placeholder = "search, launch, or run something…"
+ 
+suggestion_mode = "list"
+suggestion_position = "bottom"
+ 
+prefix_color = "light_blue"
+prefix_padding = 4
+description_color = "gray"
+ 
+selection_prefix = "▌ "
+selection_prefix_color = "light_cyan"
+inverse_selection = false
+list_prefix = "  "
+list_prefix_color = "gray"
+ 
+indicator_bare = "󰘳 "
+indicator_args = "󰁔 "
+separator = true
+separator_label = "  ❄  N O R D  ❄  "
+ 
+# ═════════════════════════ SEARCH ═════════════════════════════
+ 
+[[modules]]
+description = "󰊭  Google"
+prefix = "gg"
+cmd = "xdg-open 'https://www.google.com/search?q={}'"
+with_argument = true
+url_encode = true
+ 
+[[modules]]
+description = "󰖟  Brave Search"
+prefix = "br"
+cmd = "xdg-open 'https://search.brave.com/search?q={}'"
+with_argument = true
+url_encode = true
+ 
+[[modules]]
+description = "󰗃  YouTube"
+prefix = "yt"
+cmd = "xdg-open 'https://www.youtube.com/results?search_query={}'"
+with_argument = true
+url_encode = true
+ 
+[[modules]]
+description = "󰊤  GitHub"
+prefix = "gh"
+cmd = "xdg-open 'https://github.com/search?q={}'"
+with_argument = true
+url_encode = true
+ 
+[[modules]]
+description = "󰣇  Arch Wiki"
+prefix = "w"
+cmd = "xdg-open 'https://wiki.archlinux.org/index.php?search={}'"
+with_argument = true
+url_encode = true
+ 
+[[modules]]
+description = "󰂺  Cambridge Dictionary"
+prefix = "dc"
+cmd = "xdg-open 'https://dictionary.cambridge.org/dictionary/english/{}'"
+with_argument = true
+url_encode = true
+ 
+# ═════════════════════════ APPS ═══════════════════════════════
+ 
+[[modules]]
+description = "󰀻  Launch app (fsel, searchable)"
+prefix = "a"
+cmd = 'fsel -vv -r -d -ss "{}"'
+with_argument = true
+ 
+[[modules]]
+description = "󱓞  Launch app instantly (fsel)"
+prefix = "app"
+cmd = "fsel -vv -r -d -p {}"
+with_argument = true
+ 
+# ═════════════════════════ PACKAGES ═══════════════════════════
+# pmux isn't installed, so these use yay/pacman directly.
+# Each opens in foot so sudo prompts and confirmations work.
+ 
+[[modules]]
+description = "󰏖  Install package (yay)"
+prefix = "i"
+cmd = "setsid -f foot -e fish -lc 'yay -S {}'"
+with_argument = true
+ 
+[[modules]]
+description = "󰍉  Search repos + AUR (q to close)"
+prefix = "s"
+cmd = "setsid -f foot -e fish -lc 'yay -Ss --color=always {} | less -R'"
+with_argument = true
+ 
+[[modules]]
+description = "󰋼  Search installed packages"
+prefix = "pm"
+cmd = "setsid -f foot -e fish -lc 'pacman -Qs --color=always {} | less -R'"
+with_argument = true
+ 
+[[modules]]
+description = "󰆴  Remove package + unused deps"
+prefix = "rm"
+cmd = "setsid -f foot -e fish -lc 'sudo pacman -Rns {}'"
+with_argument = true
+ 
+[[modules]]
+description = "󰚰  Full system update"
+prefix = "up"
+cmd = "setsid -f foot -e fish -lc 'yay -Syu'"
+ 
+# ═════════════════════════ TOOLS ══════════════════════════════
+ 
+[[modules]]
+description = "  Run a command in foot"
+prefix = "sh"
+cmd = "setsid -f foot -e fish -lc '{}'"
+with_argument = true
+ 
+[[modules]]
+description = "󰃬  Calculator (python)"
+prefix = "c"
+cmd = "setsid -f foot -e fish -lc 'python -c \"print({})\"; read -l x'"
+with_argument = true
+ 
+# ═════════════════════════ SESSION ════════════════════════════
+ 
+[[modules]]
+description = "󰌾  Lock screen"
+prefix = "lock"
+cmd = "loginctl lock-session"
+ 
+[[modules]]
+description = "󰜉  Reboot"
+prefix = "reboot"
+cmd = "systemctl reboot"
+ 
+[[modules]]
+description = "󰐥  Power off"
+prefix = "off"
+cmd = "systemctl poweroff"
+ 
+
+[[modules]]
+description = "󰋗  Help: search every command"
+prefix = "?"
+cmd = "$HOME/.local/bin/otter-help"
+
+[[modules]]
+description = "󰖩  Wi-Fi manager (wifitui)"
+prefix = "wf"
+cmd = "setsid -f foot -e fish -lc wifitui"
+
+[[modules]]
+description = "󰕾  Audio mixer (wiremix)"
+prefix = "mx"
+cmd = "setsid -f foot -e fish -lc wiremix"
+
+[[modules]]
+description = "󰀂  Packet capture (termshark)"
+prefix = "ts"
+cmd = "setsid -f foot -e fish -lc 'sudo termshark'"

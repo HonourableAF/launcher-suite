@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# otter-help: searchable cheatsheet for your otter-launcher modules (fzf, Nord colors)
+# Edit the lines between the EOF markers whenever you add or change a module.
+# Columns: prefix │ group │ what it does │ example
+
+cat << 'EOF' | fzf --reverse --height=100% --no-sort --delimiter='│' \
+  --prompt='  help ❯ ' \
+  --header='  type to filter (try: package, search, install)  ·  Esc closes' \
+  --preview='printf "\n  %s\n\n  example:  %s\n" {3} {4}' \
+  --preview-window='down:5:wrap:border-top' \
+  --color='bg:-1,fg:#D8DEE9,hl:#88C0D0,fg+:#ECEFF4,bg+:#3B4252,hl+:#8FBCBB' \
+  --color='pointer:#88C0D0,prompt:#81A1C1,info:#4C566A,header:#4C566A,border:#4C566A,gutter:-1'
+gg      │ search   │ Google search. Default module: text typed with no prefix goes here │ gg arch linux
+br      │ search   │ Brave Search                                                       │ br arch linux
+yt      │ search   │ YouTube search results                                             │ yt lofi
+gh      │ search   │ GitHub search                                                      │ gh otter-launcher
+w       │ search   │ Arch Wiki search                                                   │ w fish shell
+dc      │ search   │ Cambridge Dictionary, opens that word                              │ dc ephemeral
+a       │ apps     │ fsel picker with your text pre-filled, you choose the app          │ a fire
+app     │ apps     │ launch the best match instantly. Empty Enter does this too         │ app firefox
+i       │ packages │ install with yay. Asks you to confirm                              │ i htop
+s       │ packages │ search repos and AUR. q closes the results                         │ s htop
+pm      │ packages │ search installed packages only. q closes the results               │ pm python
+rm      │ packages │ remove a package and its unused deps (pacman -Rns). Asks first    │ rm htop
+up      │ packages │ full system update with yay -Syu. No argument                      │ up
+sh      │ tools    │ run any command in a foot window through fish                      │ sh ls -la
+c       │ tools    │ python calculator. Enter closes the window                         │ c 2*8+3
+wf      │ network  │ Wi-Fi manager (wifitui) in a foot window                           │ wf
+mx      │ audio    │ audio mixer (wiremix) in a foot window                             │ mx
+ts      │ network  │ packet capture (termshark). Runs with sudo, asks for your password │ ts
+lock    │ session  │ lock the screen. No argument                                       │ lock
+reboot  │ session  │ restart IMMEDIATELY, no confirmation                               │ reboot
+off     │ session  │ power off IMMEDIATELY, no confirmation                             │ off
+?       │ help     │ this screen                                                        │ ?
+??      │ help     │ otter's built-in cheatsheet (plain list of modules)                │ ??
+EOF

@@ -1,0 +1,202 @@
+{
+  "terminal": "foot",
+  "icons": true,
+  "status": true,
+  "position": "center",
+  "screen": "cursor",
+  "search_url": "http://localhost:8888/search?q=%s",
+  "theme": {
+    "accent": "#88C0D0",
+    "accent2": "#8FBCBB",
+    "deep": "#5E81AC",
+    "surface": "#2A303A",
+    "text": "#ECEFF4",
+    "ink": "#12141A",
+    "branch": "#A3BE8C",
+    "dim": "#0E1116",
+    "dimOpacity": 0.8,
+    "font": "Monocraft",
+    "iconFont": "Symbols Nerd Font",
+    "albumColors": true
+  },
+  "items": [
+    {
+      "label": "Launcher",
+      "icon": "\uf135",
+      "desc": "Search and open any app",
+      "cmd": "gtk-launch otter-launcher"
+    },
+    {
+      "label": "Apps",
+      "icon": "\uf009",
+      "children": [
+        {
+          "label": "Browser",
+          "icon": "\uf0ac",
+          "cmd": "brave-origin"
+        },
+        {
+          "label": "Terminal",
+          "icon": "\uf120",
+          "cmd": "foot"
+        },
+        {
+          "label": "Files",
+          "icon": "\uf07c",
+          "term": true,
+          "cmd": "yazi"
+        },
+        {
+          "label": "Editor",
+          "icon": "\uf044",
+          "term": true,
+          "cmd": "nvim"
+        }
+      ]
+    },
+    {
+      "label": "System",
+      "icon": "\uf108",
+      "children": [
+        {
+          "label": "Settings",
+          "icon": "\uf013",
+          "cmd": "systemsettings"
+        },
+        {
+          "label": "Wallpapers",
+          "icon": "\uf03e",
+          "cmd": "wallpaper-picker"
+        },
+        {
+          "label": "Toggles",
+          "icon": "\uf205",
+          "children": [
+            {
+              "label": "Wi-Fi",
+              "icon": "\uf1eb",
+              "keep": true,
+              "state": "nmcli radio wifi | grep -q enabled",
+              "cmd": "if nmcli radio wifi | grep -q enabled; then nmcli radio wifi off; else nmcli radio wifi on; fi"
+            },
+            {
+              "label": "Bluetooth",
+              "icon": "\uf293",
+              "keep": true,
+              "state": "bluetoothctl show | grep -q 'Powered: yes'",
+              "cmd": "if bluetoothctl show | grep -q 'Powered: yes'; then bluetoothctl power off; else bluetoothctl power on; fi"
+            },
+            {
+              "label": "Mic mute",
+              "icon": "\uf131",
+              "keep": true,
+              "state": "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep -q MUTED",
+              "cmd": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+            },
+            {
+              "label": "Sound mute",
+              "icon": "\uf026",
+              "keep": true,
+              "state": "wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -q MUTED",
+              "cmd": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+            },
+            {
+              "label": "Networks",
+              "icon": "\uf012",
+              "desc": "Nearby Wi-Fi networks",
+              "dynamic": "builtin:wifi"
+            }
+          ]
+        },
+        {
+          "label": "Lock",
+          "icon": "\uf023",
+          "cmd": "loginctl lock-session"
+        },
+        {
+          "label": "Sleep",
+          "icon": "\uf186",
+          "cmd": "systemctl suspend"
+        },
+        {
+          "label": "Power",
+          "icon": "\uf011",
+          "children": [
+            {
+              "label": "Log out",
+              "icon": "\uf08b",
+              "cmd": "qdbus6 org.kde.Shutdown /Shutdown logout"
+            },
+            {
+              "label": "Reboot",
+              "icon": "\uf021",
+              "cmd": "systemctl reboot"
+            },
+            {
+              "label": "Shut down",
+              "icon": "\uf011",
+              "cmd": "systemctl poweroff"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Media",
+      "icon": "\uf001",
+      "children": [
+        {
+          "label": "Play / pause",
+          "icon": "\uf04b",
+          "cmd": "playerctl play-pause"
+        },
+        {
+          "label": "Next",
+          "icon": "\uf051",
+          "cmd": "playerctl next"
+        },
+        {
+          "label": "Previous",
+          "icon": "\uf048",
+          "cmd": "playerctl previous"
+        },
+        {
+          "label": "Mute",
+          "icon": "\uf026",
+          "state": "wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -q MUTED",
+          "cmd": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+        }
+      ]
+    },
+    {
+      "label": "Folders",
+      "icon": "\uf07b",
+      "children": [
+        {
+          "label": "Home",
+          "icon": "\uf015",
+          "term": true,
+          "cmd": "yazi ~"
+        },
+        {
+          "label": "Downloads",
+          "icon": "\uf019",
+          "term": true,
+          "cmd": "yazi ~/Downloads"
+        },
+        {
+          "label": "Projects",
+          "icon": "\uf121",
+          "term": true,
+          "cmd": "yazi ~/Projects"
+        },
+        {
+          "label": "Config",
+          "icon": "\uf013",
+          "term": true,
+          "cmd": "yazi ~/.config"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Otter Launcher
+Comment=Nord TUI launcher
+Exec=foot -c /home/puchai/.config/foot/otter.ini --app-id=otter-launcher --title=otter-launcher -W 60x18 otter-launcher
+Icon=system-search
+Terminal=false
+Categories=Utility;
+Keywords=launcher;search;run;
