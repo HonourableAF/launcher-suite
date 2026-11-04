@@ -87,6 +87,10 @@ cp radial/menu.example.json radial/menu.json
 
 Put images in `~/Pictures/Wallpapers`, or set `WP_DIR` to another folder:
 
+#### Browser
+
+The otter Brave module and the original radial menu use `brave-origin`. Replace it with your own browser command in `otter-launcher/config.toml` and `radial/menu.json`.
+
 ```sh
 WP_DIR=~/some/folder wallpaper-picker
 ```
